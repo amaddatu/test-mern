@@ -7,8 +7,12 @@ const Example = require("./exampleModel.js");
 
 //remember that this is your connection string.
 //we will change this later
-mongoose.connect("mongodb://localhost/testmern", { useNewUrlParser: true });
-
+if(typeof process.env.MONGODB_URI !== 'undefined' && process.env.MONGODB_URI.length > 0){
+  mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
+}
+else{
+  mongoose.connect("mongodb://localhost/testmern", { useNewUrlParser: true });
+}
 // Define middleware here
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -44,6 +48,7 @@ Example.create(data)
   .catch(function(err) {
     // If an error occurs, log the error message
     console.log(err.message);
+    res.json({error: "you made a boo boo"});
   });
 
 });
