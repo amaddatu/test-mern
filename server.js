@@ -1,9 +1,14 @@
 const express = require("express");
 const path = require("path");
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
+const expressSession = require("express-session");
+const passport = require("passport");
 const PORT = process.env.PORT || 3001;
 const app = express();
 const mongoose = require("mongoose");
 const Example = require("./exampleModel.js");
+const User = require("./models/User");
 
 //remember that this is your connection string.
 //we will change this later
@@ -16,6 +21,18 @@ else{
 // Define middleware here
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(expressSession({ 
+  secret: '12346 xyz i dont know it could be anything tomato',
+  resave: true, 
+  saveUninitialized: true,
+  secure: false 
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Serve up static assets (usually on heroku)
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
@@ -29,26 +46,13 @@ app.get("/michigan", (req, res) => {
 });
 
 app.get("/testdb", (req, res) => {
-  // Create an object containing dummy data to save to the database
-var data = {
-  array: ["item1", "item2", "item3"],
-  boolean: false,
-  string:
-    "\"Don't worry if it doesn't work right. If everything did, you'd be out of a job\" - Mosher's Law of Software Engineering",
-  number: 42
-};
 
-// Save a new Example using the data object
-Example.create(data)
-  .then(function(dbExample) {
-    // If saved successfully, print the new Example document to the console
-    console.log(dbExample);
-    res.json(dbExample);
-  })
-  .catch(function(err) {
-    // If an error occurs, log the error message
-    console.log(err.message);
-    res.json({error: "you made a boo boo"});
+  User.create({
+    profileId: "1",
+    email: "test@c.com"
+  }).then( data => {
+    console.log(data);
+    res.json(data);
   });
 
 });
