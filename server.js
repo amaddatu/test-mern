@@ -9,6 +9,8 @@ const app = express();
 const mongoose = require("mongoose");
 const Example = require("./exampleModel.js");
 const User = require("./models/User");
+const passportGoogleAuth = require('passport-google-oauth20');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 //remember that this is your connection string.
 //we will change this later
@@ -33,6 +35,50 @@ app.use(expressSession({
 app.use(passport.initialize());
 app.use(passport.session());
 
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.GOOGLE_CALLBACK
+},
+function(accessToken, refreshToken, data, cb) {
+  //console.log(data.emails[0].value);
+  var email = data.emails[0].value;
+  var profileId = data.id;
+  //console.log(data.id);
+  // User.findOrCreate({ googleId: profile.id }, function (err, user) {
+  // return cb(err, user);
+  // });
+  User.findOne({
+    profileId: profileId
+  })
+  .then( user => {
+    if(!user){
+      User.create({
+         profileId: profileId,
+         email: email
+         }).then( user => {
+           //create user if not exists
+           return cb(null, user);
+         });
+    }
+    //return user if exists
+    return cb(null, user);
+  }).catch( err => {
+    console.log(err);
+    return cb(err, null);
+  })
+  // User.create({
+  //   profileId: profileId,
+  //   email: email
+  // }).then( user => {
+  //   return cb(null, user);
+  // }).catch( err => {
+  //   console.log(err);
+  //   return cb(err, null);
+  // });
+}
+));
+
 // Serve up static assets (usually on heroku)
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
@@ -56,6 +102,8 @@ app.get("/testdb", (req, res) => {
   });
 
 });
+
+require('./routes/api-routes')(app, passport, User);
 
 // Send every other request to the React app
 // Define any API routes before this runs
