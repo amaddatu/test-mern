@@ -35,6 +35,14 @@ app.use(expressSession({
 app.use(passport.initialize());
 app.use(passport.session());
 
+console.log(
+  {
+    functionName: "passport use inputs in server.js",
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK
+  }
+);
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -62,7 +70,9 @@ function(accessToken, refreshToken, data, cb) {
          });
     }
     //return user if exists
-    return cb(null, user);
+    else{
+      return cb(null, user);
+    }
   }).catch( err => {
     console.log(err);
     return cb(err, null);
